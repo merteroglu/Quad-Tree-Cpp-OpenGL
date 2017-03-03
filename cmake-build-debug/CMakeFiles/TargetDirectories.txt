@@ -1,0 +1,3 @@
+D:/Sources/CLionSources/MyQuadTree/cmake-build-debug/CMakeFiles/MyQuadTree.dir
+D:/Sources/CLionSources/MyQuadTree/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Sources/CLionSources/MyQuadTree/cmake-build-debug/CMakeFiles/rebuild_cache.dir
