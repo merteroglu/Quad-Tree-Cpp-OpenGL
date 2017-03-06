@@ -70,7 +70,6 @@ int main()
     qtree->insert(nok3,1);
     qtree->insert(nok4,1);
     qtree->insert(nok5,1);
-    /*
     qtree->insert(nok6,1);
     qtree->insert(nok7,1);
     qtree->insert(nok8,1);
@@ -79,7 +78,7 @@ int main()
     qtree->insert(nok11,1);
     qtree->insert(nok12,1);
     qtree->insert(nok13,1);
-*/
+
     cout << qtree->print();
 
 
