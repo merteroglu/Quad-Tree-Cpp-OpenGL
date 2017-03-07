@@ -1,26 +1,185 @@
 = QuadTree
 
-Dörtlü ağaç,2 boyutlu düzlemin dikdörtgen bölgesi içinde yer alan noktaların depolanması ve incelenmesi konusunda kullanılan bir veri yapısıdır.
+== QuadTree Nedir?
 
-* Root : Kök düğüm.Ağacın en tepesinde bulunan ana düğüm.
+QuadTree, dörtlü ağaç yapısıdır. Her düğüm dört adet alt düğüme sahip olabilir.İki boyutlu düzlemin dikdörtgen bölgesi içinde yer alan noktaları, her nokta bir kutuya gelecek şekilde ayrılıp tutulur.Çarpışma tespiti için ideal veri yapısıdır.
 
-* Düğüm : Çocuğu olan data saklamayan düğüm.
 
-* Yaprak:Çocuğu olmayan data saklayan düğüm.
+* Root :Ana düğüm.Ağaç veri yapısının en üstünde bulunan düğümdür.Tüm alanı temsil eder.
 
-== QuadTree Yerleşim
+* Branch : Dal düğümleridir.İçerisinde data saklamaz.Ana alanın alt bölümlerinin merkezlerini temsil ederler.
 
-image::images/DolanimYonu.jpg[R]
+* Leaf : Yaprak düğümleridir.İçerisinde noktaların koordinatlarını tutar.Ağaç veri yapısının en altında bulunan düğümlerdir.
 
-== Örnek Veri Kümesi
+== QuadTree Bölge Ayrılması
 
-image::images/noktav2.png[R]
+Quadtree, içerisinde dört işaretci bulunur.Bu işaretciler dikdörtgensel bölgeyi KuzeyBatı,KuzeyDoğu,GüneyBatı ve GüneyDoğu olmak üzere dört bölgeye ayırır.Dikdörtgensel bölgeyi
+GüneyBatı : 0, KuzeyBatı : 1,GüneyDoğu = 2 ve KuzeyDoğu = 3 olarak etiketledik.
 
-Yerleşim 1024x1024 alana yapılacaktır.Bölünme işleminin kolay olması açısından ikinin katları seçilmiştir.
+image::images\DolanimYonu.jpg[R]
 
-* Koordinat Listesi
+== QuadTree Gerçekleştirilmesi
+
+=== Point Classı
+
 [source,cpp]
-====
+----
+long double x;
+
+long double y;
+
+----
+
+=== Node(Düğüm) Classı
+
+[source,cpp]
+----
+Point center,range; <1>
+
+bool leaf; <2>
+
+Node* child[4]; <3>
+
+vector<pair<Point,Data>>bucket; <4>
+
+----
+
+<1> Düğümlerde merkez ve genişlik değerleri tutulmaktadır.Yaprak düğümlerde bu değerler boştur.Root yada dal düğümlerin merkezi ve genişlik bilgileri saklanır.Genişlik bilgisi her derinlik için bilinsede düğümün hangi derinlikte bulunduğunu her işlemde tekrar hesaplanmak yerine ilk anda hesaplanıp saklanmaktadır.
+
+<2> Düğümün yaprak mı dal mı olduğunu tutar.Leaf true ise yapraktır.
+
+<3> Her düğümün potansiyel dört çocuğu vardır.Çocukların adreslerinin tutar.Bölge ayrılmasında bahsedilen 0 1 2 3 etiketleri dizinin indexleridir.Olmayan çocuklar için NULL değeri atanır.
+
+<4> Yaprak düğümlerde saklanıcak verileri tutar.
+
+
+=== QuadTree Fonksiyonları
+
+[source,cpp]
+----
+direction(Point point,Node* node)
+
+Giriş: Point point, Noktanın koordinatları. Node* node, Noktanın yönünün belirleneceği düğüm.
+
+Çıkış: 0 1 2 3. 
+
+/* Noktanın ve düğümün merkezinin x koordinatları karşılaştırıp sonucu 1 bit sola kaydır */
+
+X = (point.x >= node->center.x) << 1
+
+
+/* Noktanın ve düğümün merkezinin y koordinatları karşılaştırıp sonucu 0 bit sola kaydır  */
+
+Y = (point.y >= node->center.y) << 0
+
+/* X ve Y değerleri bit or işlemi yap */
+
+(X|Y)
+
+----
+
+[source,cpp]
+----
+newCenter(int direction,Node* node)
+
+/* Yeni oluşturulan düğümlerin merkezini bulur */
+
+Giriş:direction,Düğümün hangi yönünde ki merkezi. node yaprağının merkezi hesaplanıcak düğüm
+
+Çıkış: Point. Yeni düğümün merkez koordinatı.
+
+/* Yeni merkez noktası tanımla düğümün merkezini ata */
+Point yeniMerkez = node.center
+
+if(direction = 0)
+    yeniMerkezin x ve y sinden Düğümün genişliğinin yarısını çıkart.
+    
+if(direction = 1)
+   yeniMerkezin x değerinden düğümün genişliğinin yarısını çıkart.
+   yeniMerkezin y değerine düğümün genişliğinin yarısını ekle
+    
+if(direction = 2)
+   yeniMerkezin x değerine düğümün
+   genişliğinin yarısını ekle.
+   yeniMerkezin y değerinden düğümün genişliğinin yarısını çıkart.
+   
+if(direction = 3)
+   yeniMerkezin x değerine düğümün
+   genişliğinin yarısını ekle.
+   yeniMerkezin y değerine düğümün genişliğinin yarısını ekle.
+   
+
+----
+
+[source,cpp]
+----
+childNode(Point p,Node* node)
+/* Girilen noktanın,girilen düğümünün uygun bölümündeki çocuğunu döndürür.*/
+
+Giriş:Point p,Kontrol edilcek nokta.Node, alt düğümüne gidilmek istenen düğüm;
+
+Çıkış:Node*,Gelen node un çocuk düğümünün adresi
+
+/* Noktanın yönünü bul */
+dir = direction(p,node)
+
+/* düğümün o bölgede çocuğu varsa onun adresini döndür */
+if(node->child[dir])
+    return node->child[dir]
+else
+    /* Düğümün o bölgede çocuğu yoksa yeni düğüm oluştur.Yeni düğümün genişliği üst düğümün genişliğinin yarısı olarak ayarla */
+Point p(node->range.x /2 , node->range.y/2)
+node->child[dir] = new Node(newCenter(dir,node),r)
+return node->child[dir]
+
+    
+
+
+----
+
+
+[source,cpp]
+----
+insert(Point p,Data,Node,Depth)
+/* Ağaca yeni düğüm ekler */
+Giriş:P eklenicek noktanın koordinatı,Data düğümde tutulacak bilgi, Node yeni datanın eklenicek düğümünü,Depth yeni düğümün derinliği.
+
+Çıkış:Çıkış bulunmamakta.
+
+
+/* Yeni düğüm yaprak mı */
+if(node->leaf)
+
+/* Yaprak düğüm boş mu ? */
+if(node->bucket.size < 1) /* Boş ise */
+    Yeni datayı ve noktayı düğüme ekle
+else /* Dolu ise */
+    node->leaf = false; /*Düğüm yaprak değil olarak ayarla*/
+    
+    /* Düğümün noktanın gelen kısmında ki çocuğuna ekleme işlemi yap */
+    insert(v,data,childNode(v,node),depth +1)
+    
+    /* Yapraktaki bilgiyi kendi uygun çocuğuna ekle */
+    insert(node->bucket,data,chilNode(node->bucket,node),depth+1;
+
+    /* Düğümde ki data ve koordinatları temizle */
+    node->bucket.clear
+    
+/* Düğüm yaprak değilse */    
+else
+/* Yeni düğüm oluşturup ekle */
+insert(v,data,childNode(v,node),depth+1)
+
+
+----
+
+
+=== Test Nokta Kümesi
+
+image::images\noktav2.png[R]
+
+[source,cpp]
+----
 780,1010  
 
 910,1000
@@ -46,16 +205,5 @@ Yerleşim 1024x1024 alana yapılacaktır.Bölünme işleminin kolay olması aç�
 1024,0  
 
 1024,1024
-====
-
-== Yerleştirme Algoritması
-
-Ekleme işlemine root kök düğümden başlanır. Gelen data koordinatları ve kök düğümün merkez koordinatları karşılaştırılır.Karşılaştırma işlemi
-gelen datanın x koordinatı düğümün merkezinin x koordinatından büyük veya eşit olma durumunda 1 küçük olma durumunda 0 sonucu alır bu sonuç bit shifting yöntemiyle 1 bit sola kaydırılır . Eğer büyükse 2 küçükse 0 değerini alır. Datanın y koordinatı düğümün merkez y koordinatından büyük veya eşit olma durumunda 1 küçük olma durumunda 0 değerini alır.Bu sonuç bit shifting yöntemiyla sola kaydırılır. X ve Y değerleri veya işlemine sokulur ve yerleşim tablomuza göre 0 1 2 3 olarak belirlenir.Düğümün belirlenen çocuğuna gidilir.Bu düğümün yaprak düğüm olup olmadığı kontrol edilir.Eğer yaprak düğüm ve boş ise yeni düğüm oluşturulur ve data buraya eklenir.Eğer düğüm yaprak değilse ekleme işlemi rekürsif olarak devam eder.Yeni düğüm ile data koordinat karşılaştırmaları yapılır ve o düğümün uygun yeri saptanır.Tekrar yaprak mı kontrolü yapılır.Eğer yapraksa ve doluysa yaprak içinde ki veri geçici bir değişkene alınır ve yaprak düğümün içinde ki data boşaltılır.İçinde ki data ve yeni gelen data düğümün içinde yeni oluşturulan yaprak düğümünlere eklenir.
-
-* Örnek veriler sonucu oluşan ağaç yapısı
-
-image::images/Agac.png[R]
-
-Kırmızı noktalar dolu düğümleri göstermektedir.
+----
 
