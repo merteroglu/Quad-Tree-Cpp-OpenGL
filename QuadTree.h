@@ -1,6 +1,7 @@
-//
-// Created by Mert on 3.03.2017.
-//
+/**
+QuadTree.h
+Aðaç yapýsýnýn oluþturulduðu class. Aðaca ekleme arama iþlemleri bu classta yapýlýr
+**/
 
 #ifndef QUADTREE_H
 #define QUADTREE_H
@@ -11,57 +12,57 @@
 #include <stack>
 #include <string>
 #include <vector>
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 #include <stdlib.h>
 
 #include "QTNode.h"
-#include "Vertex.h"
+#include "Point.h"
 
 using namespace std;
 
-#define LOWER_LEFT_QUAD 0
-#define UPPER_LEFT_QUAD 1
-#define LOWER_RIGHT_QUAD 2
-#define UPPER_RIGHT_QUAD 3
+#define SOL_ALT 0
+#define SOL_UST 1
+#define SAG_ALT 2
+#define SAG_UST 3
 
-
-enum enclosure_status {
-    NODE_NOT_IN_REGION,
-    NODE_PARTIALLY_IN_REGION,
-    NODE_CONTAINED_BY_REGION
+enum bolge_durumu
+{
+	bolgede_degil,
+	kismen,
+	bolgede
 };
 
 template <typename T>
-class QuadTree{
-
+class QuadTree
+{
 public:
 
-    QuadTree <T>(vertex center, vertex range, unsigned bucketSize = 1, unsigned depth = 16);
-    ~QuadTree();
+	QuadTree <T>(point merkez, point genislik, unsigned kumeBoyutu = 1, unsigned derinlik = 16);
+	~QuadTree();
 
-    void insert(vertex v, T data);
-    //bool contains(vertex v);
-    //bool remove(vertex v);
-    string print();
-    //vector<pair <vertex, T> > getObjectsInRegion(vertex minXY, vertex maxXY);
+	void 	ekle(point v, T data);
+	void 	ciz();
+	vector <pair <point, T> > bolgedekiObjeleriBul(point minXY, point maxXY);
 
 private:
-    QTNode<T>* childNode(const vertex& v, QTNode<T>* node);
-    vertex newCenter(int direction, QTNode<T>* node);
-    int direction(const vertex& point, QTNode<T>*node);
-    void insert(vertex v, T data, QTNode<T>* node, unsigned depth);
-    //void reduce(stack <QTNode<T>*>& node);
-    void print(QTNode<T>* node, stringstream& ss);
-    //void addAllPointsToResults(QTNode<T>* node, vector<pair<vertex, T> >& results);
-    //bool pointInRegion(const vertex& point, const vertex& minXY, const vertex& maxXY);
-    //enclosure_status getEnclosureStatus(const vertex& center, const vertex& range, const vertex& minXY, const vertex& maxXY);
 
-    QTNode<T>* root;
-    unsigned maxDepth, maxBucketSize;
+	QTNode<T>* cocukDugumBul(const point& v, QTNode<T>* node);
+	point   yeniMerkezBul(int bolgeNo, QTNode <T>* node);
+	int 	bolgeNoBul(const point& point, QTNode <T>* node);
+	void 	ekle(point v, T data, QTNode<T>* node, unsigned derinlik);
+	void 	ciz(QTNode<T>* node);
+	void	noktalariSonucaEkle(QTNode<T>* node, vector <pair <point, T> >& sonuc);
+	bool    noktaBolgedeMi(const point& p, const point& minXY, const point& maxXY);
+	bolge_durumu bolgeDurumunuBul(const point& merkez, const point& genislik, const point& minXY, const point& maxXY);
 
-
-
+	QTNode<T>* root;
+	unsigned maxDerinlik, maxKumeBoyutu;
 };
 
-#include "QuadTree.cpp"
-#endif
 
+#include "QuadTree.cpp"
+#endif //#ifdef QUADTREE_H

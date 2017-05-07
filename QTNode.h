@@ -1,43 +1,42 @@
+/*
+Quadtree de ki her bir düðümün classý
+Düðümlerde merkez ve geniþlik bilgileri tutulur
+*/
+#pragma once
+
 #include <cstdlib>
 #include <vector>
-#include "Vertex.h"
-
+#include "Point.h"
 using namespace std;
 
 template <class T>
-class QTNode{
+class QTNode {
 
 public:
 
-    vertex center, range;
+	QTNode <T>(point yeniMerkez, point yeniGenislik) {
+		for (int i = 0; i < 4; i++)
+			child[i] = NULL;
+		
+		merkez = yeniMerkez;
+		genislik = yeniGenislik;
+		yaprak = true;
+	}
 
+	~QTNode() { 
+		for (int i = 0; i < 4; ++i) 
+			if (child[i]) { 
+				delete child[i]; 
+			} 
+		}
 
-    bool leaf;
-    QTNode* child[4];
+	point merkez, genislik;
 
+	
+	bool yaprak;
+	QTNode* child[4];
 
-    vector < pair<vertex, T> > bucket;
-
-
-    QTNode <T>(vertex newCenter, vertex newRange) {
-
-        for (int i = 0; i < 4; i++)
-            child[i] = NULL;
-
-        center = newCenter;
-        range = newRange;
-        leaf = true;
-
-    }
-
-
-    ~QTNode()
-    {
-        for (int i = 0; i < 4; i++) {
-            if (child[i])
-                delete child[i];
-        }
-
-    }
+	
+	vector <pair <point, T> > kume;
 
 };
